@@ -147,23 +147,65 @@ Document any:
 
 ### 10. Annual Process Checklist
 
+## Human Actions Required for Each New Year
+
+### Pre-Setup (One-time per year)
+
+#### Create New GCS Bucket
+```bash
+# Update YEAR in command below
+export YEAR=2028  # CHANGE THIS
+gsutil mb -p eavs-392800 gs://eavs-data-files-${YEAR}/
+```
+
+#### Update Field Mappings Configuration
+Edit `config/field_mappings.yaml` and add new year section for each mapping type:
+
+```yaml
+registration_mappings:
+  # ... existing years ...
+  2028:  # ADD NEW YEAR HERE
+    total_reg: null    # START WITH null, UPDATE AFTER VALIDATION
+    active_reg: null
+    # ... all other fields as null initially
+```
+
+### Process Steps
+
 #### Before Loading New Year
-- [ ] Review data standards document
-- [ ] Check for methodology changes
-- [ ] Compare file structure with previous years
-- [ ] Prepare validation criteria
+- [ ] Review data standards document  
+- [ ] Create GCS bucket: `gs://eavs-data-files-YYYY/`
+- [ ] Download EAVS data files to local directory
+- [ ] Add new year sections to `config/field_mappings.yaml` (all fields as `null`)
 
-#### During Loading Process
-- [ ] Follow exact field mapping process
-- [ ] Document all decisions and exceptions
-- [ ] Run all validation scripts
-- [ ] Get researcher confirmation on mappings
+#### Field Validation & Mapping
+- [ ] Run `python scripts/validate_mappings.py YYYY "/path/to/data"`
+- [ ] Update `config/field_mappings.yaml` with correct field mappings
+- [ ] Set missing fields to `null` explicitly  
+- [ ] Re-run validation until all mappings are correct
+- [ ] Get researcher approval for methodology changes
 
-#### After Loading Complete
-- [ ] Verify dashboard functionality
-- [ ] Document any issues or changes
-- [ ] Update this standards document if needed
-- [ ] Prepare summary for stakeholders
+#### Data Loading
+- [ ] Run `python scripts/load_eavs_year.py YYYY "/path/to/data"`
+- [ ] Verify row counts match source files
+- [ ] Check that external tables are created correctly
+
+#### View Updates (After Methodology Review)
+- [ ] Update union view SQL files to include new year
+- [ ] Deploy updated views to BigQuery
+- [ ] Test that union views return data for new year
+
+#### Dashboard Integration  
+- [ ] Update mart tables if needed
+- [ ] Test all dashboard functionality
+- [ ] Verify new year data appears correctly
+- [ ] Check calculations and trends
+
+#### Documentation
+- [ ] Document any methodology changes
+- [ ] Update field mapping rationale
+- [ ] Note any data quality issues  
+- [ ] Commit all changes to git
 
 ## Common Data Quality Issues to Watch For
 
