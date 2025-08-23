@@ -198,7 +198,8 @@ class EAVSLoader:
             return None
         
         mappings = self.config[config_key]
-        year_fields = mappings.get(self.year, {})
+        # Try both string and integer year keys (YAML may parse as int)
+        year_fields = mappings.get(self.year, mappings.get(int(self.year), {}))
         
         if not year_fields:
             logger.warning(f"No field mappings for {section} in year {self.year}")
@@ -219,9 +220,12 @@ class EAVSLoader:
         # Generate CTE
         table_name = f"eavs_county_{self.year_short}_{section}"
         
+        # Join selections with newlines
+        selections_str = ',\n    '.join(selections)
+        
         cte = f"""  {section}_{self.year} AS (
   SELECT
-    {',\n    '.join(selections)}
+    {selections_str}
   FROM
     `eavs_{self.year}.{table_name}`
   )"""
@@ -234,13 +238,13 @@ class EAVSLoader:
         import re
         
         # Find all existing years for this section
-        pattern = rf"{section}_(\d{{4}}) AS \("
+        pattern = section + r"_(\d{4}) AS \("
         years = re.findall(pattern, existing_sql)
         
         if years:
             # Insert after the last year
             last_year = sorted(years)[-1]
-            insert_pattern = rf"({section}_{last_year} AS \([^)]+\))"
+            insert_pattern = f"({section}_{last_year}" + r" AS \([^)]+\))"
             match = re.search(insert_pattern, existing_sql, re.DOTALL)
             
             if match:
