@@ -26,7 +26,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # GCS bucket name - using a consistent bucket for all years
-GCS_BUCKET = "eavs-data-files"
+GCS_BUCKET = "eavs-data-files-2024"
 PROJECT_ID = "eavs-392800"
 ANALYTICS_DATASET = "eavs_analytics"
 
@@ -41,7 +41,7 @@ class EAVSLoader:
         self.storage_client = storage.Client(project=PROJECT_ID)
         
         # Load field mappings
-        config_path = Path(__file__).parent / "config" / "field_mappings.yaml"
+        config_path = Path(__file__).parent.parent / "config" / "field_mappings.yaml"
         with open(config_path, 'r') as f:
             self.config = yaml.safe_load(f)
         
@@ -50,15 +50,15 @@ class EAVSLoader:
     def create_gcs_bucket(self):
         """Create GCS bucket if it doesn't exist"""
         try:
-            bucket = self.storage_client.create_bucket(
-                GCS_BUCKET, 
-                location="US"
-            )
-            logger.info(f"Created bucket: {GCS_BUCKET}")
-        except Conflict:
-            logger.info(f"Bucket {GCS_BUCKET} already exists")
+            # Try to access the bucket first
+            bucket = self.storage_client.bucket(GCS_BUCKET)
+            # Just try to list it to see if it exists and is accessible
+            list(bucket.list_blobs(max_results=1))
+            logger.info(f"✓ Bucket {GCS_BUCKET} exists and is accessible")
         except Exception as e:
-            logger.error(f"Error creating bucket: {e}")
+            logger.error(f"Cannot access bucket {GCS_BUCKET}: {e}")
+            logger.info("Please create the bucket manually with:")
+            logger.info(f"  gsutil mb -p {PROJECT_ID} gs://{GCS_BUCKET}/")
             raise
     
     def upload_files_to_gcs(self, data_dir: Path) -> dict:

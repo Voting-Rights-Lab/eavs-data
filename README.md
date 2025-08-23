@@ -1,175 +1,62 @@
 # EAVS Data Pipeline
 
-Annual pipeline for loading Election Administration and Voting Survey (EAVS) data into BigQuery.
+Annual ETL pipeline for processing Election Administration and Voting Survey (EAVS) data into BigQuery.
 
-## What This Does
+## Quick Start
 
-1. Uploads EAVS CSV files to Google Cloud Storage
-2. Creates BigQuery external tables pointing to the files  
-3. **Automatically updates union views with new year data**
-4. Refreshes materialized tables for dashboard performance
-5. Everything works - dashboards update automatically!
+1. **Authenticate**:
+   ```bash
+   gcloud auth login fryda.guedes@contractor.votingrightslab.org
+   gcloud config set project eavs-392800
+   ```
+
+2. **Load new year** (replace 2024 with target year):
+   ```bash
+   python scripts/load_eavs_year.py 2024 /Users/frydaguedes/Downloads/2024
+   ```
+
+3. **Update union views manually** in BigQuery Console using generated SQL
+
+4. **Refresh materialized tables**:
+   ```bash
+   python scripts/load_eavs_year.py 2024 /any/path --refresh-tables
+   ```
 
 ## Setup
 
-### Prerequisites
-- Python 3.8+
-- Google Cloud SDK installed and configured
-- Access to the EAVS BigQuery project (eavs-392800)
-- Service account or user credentials with appropriate permissions
-
-### Installation
-
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd eavs-data
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
 # Install dependencies
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-
-# Authenticate with Google Cloud
-gcloud auth application-default login
-gcloud config set project eavs-392800
 ```
 
-## Usage
+## What It Does
 
-### Quick Start - Loading a New Year
+Processes yearly EAVS election data (typically 3000+ counties) from CSV files into BigQuery for analytics dashboards.
 
-To load a new year of EAVS data (e.g., 2024):
-
-```bash
-# Run the complete loading process
-python scripts/load_eavs_year.py 2024 /Users/frydaguedes/Downloads/2024
-```
-
-This will:
-1. Create GCS bucket if needed (eavs-data-files)
-2. Upload CSV files to GCS
-3. Create BigQuery dataset (eavs_2024)
-4. Create external tables pointing to GCS files
-5. Generate SQL for updating union views
-6. Validate the data
-
-### That's It!
-
-The script automatically:
-- Updates all union views with the new year
-- No manual SQL copying needed
-- Views are ready immediately for dashboards
-
-If you need to refresh materialized tables separately:
-```bash
-python scripts/load_eavs_year.py 2024 /any/path --refresh-tables
-```
+**Data Flow**: CSV files → GCS → BigQuery tables → Union views → Dashboard feeds
 
 ## Configuration
 
-The pipeline is configured via `config/field_mappings.yaml`. This file contains:
+Field mappings are in `config/field_mappings.yaml` - column names change between years so mappings must be updated annually.
 
-- **Global settings**: Project ID, dataset names, GCS bucket
-- **Section definitions**: Which data sections exist for each year
-- **Field mappings**: How raw field names map to standardized column names
+## Key Files
 
-### Adding a New Year
+- `scripts/load_eavs_year.py` - Main ETL pipeline
+- `config/field_mappings.yaml` - Year-specific field mappings  
+- `docs/ANNUAL_CHECKLIST.md` - Detailed step-by-step guide
+- `CLAUDE.md` - Complete technical context for AI collaboration
 
-1. Download the EAVS data files to a local directory
-2. Update `config/field_mappings.yaml`:
-   - Add the year to the `sections` configuration
-   - Add field mappings for any changed column names
-3. Run the pipeline for the new year
+## Important Notes
 
-### Field Mapping Structure
+- **Field mappings change yearly** - always verify CSV column names before processing
+- **Union views require manual updates** - the script generates SQL but cannot update views
+- **Test with sample data first** - validate mappings before full load
+- See `docs/ANNUAL_CHECKLIST.md` for complete workflow
 
-```yaml
-registration_mappings:
-  2024:
-    state: state  # source_field: target_field
-    county: county
-    state_abbr: state_name_abbreviation
-    total_reg: a1a_total_reg
-    # ... more mappings
-```
+## Project Info
 
-## Data Flow
-
-```
-Local CSV Files
-    ↓
-Google Cloud Storage
-    ↓
-BigQuery External Tables (eavs_2024.*)
-    ↓
-Union Views (eavs_analytics.*_union)
-    ↓
-Materialized Tables (eavs_analytics.stg_*)
-    ↓
-Analytics Marts & Dashboards
-```
-
-## Project Structure
-
-```
-eavs-data/
-├── scripts/
-│   └── load_eavs_year.py      # Main pipeline script
-├── config/
-│   └── field_mappings.yaml    # Field mappings for all years
-├── sql/
-│   └── view_updates/          # Generated SQL for view updates
-├── docs/
-│   └── ANNUAL_CHECKLIST.md    # Step-by-step checklist
-├── requirements.txt
-└── README.md
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Authentication errors**: Ensure you're authenticated with the correct Google account
-   ```bash
-   gcloud auth list  # Check active account
-   gcloud auth login fryda.guedes@contractor.votingrightslab.org
-   ```
-
-2. **Missing GCS bucket**: Create the bucket if it doesn't exist
-   ```bash
-   gsutil mb -p eavs-392800 gs://eavs-data/
-   ```
-
-3. **Permission errors**: Ensure your account has the necessary BigQuery and Storage permissions
-
-### Logs
-
-Check the `logs/` directory for detailed pipeline execution logs:
-```bash
-tail -f logs/eavs_pipeline_*.log
-```
-
-## Manual Steps
-
-After running the pipeline, you may need to:
-
-1. **Update union view SQL manually**: The pipeline generates the SQL but doesn't automatically update the view definition. Copy the generated SQL and update the view in BigQuery UI.
-
-2. **Create performance tables**: In BigQuery UI, create tables from views for better performance:
-   ```sql
-   CREATE OR REPLACE TABLE `eavs_analytics.mart_eavs_analytics_county_rollup` AS
-   SELECT * FROM `eavs_analytics.eavs_analytics_county_rollup`;
-   ```
-
-3. **Update Looker Studio dashboards**: Refresh data sources if needed
-
-## Contributing
-
-When adding new features:
-1. Update field mappings in `config/field_mappings.yaml`
-2. Test with a small subset of data first
-3. Document any manual steps required
-4. Update this README with new functionality
+- **BigQuery Project**: eavs-392800
+- **Data Source**: Google Drive (see CLAUDE.md for link)
+- **Account**: fryda.guedes@contractor.votingrightslab.org

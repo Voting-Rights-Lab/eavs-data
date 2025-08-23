@@ -1,134 +1,210 @@
-# CLAUDE.md
+# CLAUDE.md - EAVS Data Pipeline Context
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Comprehensive background for AI collaboration on the EAVS (Election Administration and Voting Survey) annual data processing pipeline.
 
 ## Project Overview
 
-The EAVS Data Transformation project processes Election Administration and Voting Survey (EAVS) data from raw county-level CSV files into structured BigQuery tables and views for reporting and analysis.
+This is a **yearly ETL pipeline** that processes EAVS election data from CSV files into BigQuery for analysis and dashboards. The process runs annually when new EAVS data is released, typically processing 3000+ counties across 50+ states.
 
-## Architecture
+**Key Facts:**
+- **Yearly cycle**: New data arrives annually, requires processing into existing structure
+- **Data volume**: ~3000+ counties per section, multiple sections per year
+- **Timeline**: Usually process previous election year (e.g., processing 2024 data in 2025)
+- **Output**: BigQuery tables/views feeding Looker Studio dashboards
+- **Users**: Voting rights analysts and researchers
 
-### Data Pipeline
-- **Input**: Annual EAVS data files in CSV format organized by sections (Registration, UOCAVA, Mail, Participation, etc.)
-- **Processing**: Python ETL scripts for data cleaning, transformation, and validation
-- **Storage**: Google BigQuery (project: eavs-392800)
-- **Output**: Standardized views for reporting and Looker Studio dashboards
+## Architecture & Data Flow
 
-### Key Data Sections
+```
+Local CSV Files (Downloaded from Google Drive)
+    ↓ (Python ETL Script)
+Google Cloud Storage (eavs-data-files bucket)
+    ↓ (BigQuery External Tables)
+Year-specific Datasets (eavs_2024, eavs_2022, etc.)
+    ↓ (Union Views)
+Analytics Dataset (eavs_analytics.*_union views)
+    ↓ (Materialized Tables)
+Staging Tables (eavs_analytics.stg_*)
+    ↓ (Analytics Marts)
+Dashboard Tables & Looker Studio
+```
+
+### Data Sections (varies by year)
 - **Section A**: Registration - Voter registration statistics
-- **Section B**: UOCAVA - Military and overseas voting data
-- **Section C**: Mail - Absentee/mail ballot data
-- **Section F1**: Participation - Voter turnout and participation methods
-- **Supplemental**: CVAP data and FIPS code mappings
+- **Section B**: UOCAVA - Military and overseas voting
+- **Section C**: Mail - Absentee/mail ballot data  
+- **Section F1**: Participation - Voter turnout by method
+- **Others**: Additional sections vary by year
 
-## Development Commands
+## Core Commands
 
-### Environment Setup
+### Primary Workflow
 ```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
+# Complete annual load process
+python scripts/load_eavs_year.py 2024 /Users/frydaguedes/Downloads/2024
 
-# Install dependencies
-pip install -r requirements.txt
+# Refresh materialized tables only
+python scripts/load_eavs_year.py 2024 /any/path --refresh-tables
 ```
 
-### BigQuery Authentication
+### Authentication (run first)
 ```bash
-# Set project
+gcloud auth login fryda.guedes@contractor.votingrightslab.org
 gcloud config set project eavs-392800
-
-# Authenticate
-gcloud auth application-default login
-
-# List datasets
-bq ls
 ```
 
-## Important Technical Details
+### Validation
+```bash
+# Check available years in BigQuery
+bq query "SELECT DISTINCT election_year FROM \`eavs_analytics.eavs_county_reg_union\` ORDER BY election_year DESC"
 
-### Data Processing Constraints
-1. **File Naming**: EAVS files follow pattern `EAVS_county_{year}_{section}.csv`
-2. **Geographic Keys**: All data includes FIPS codes for county-level joining
-3. **Year Variations**: Different years may have different sections available
-4. **Data Quality**: Handle missing values and validate against codebooks
+# Verify new year loaded
+bq query "SELECT COUNT(*) as counties FROM \`eavs_2024.eavs_county_24_a_reg\`"
+```
 
-### BigQuery Conventions
-1. **Dataset Naming**: Use year-based datasets (e.g., `eavs_2024`)
-2. **Table Naming**: Preserve section structure (e.g., `section_a_registration`)
-3. **View Naming**: Create unified views across years for reporting
-4. **Schema Evolution**: Document schema changes between years
+## Technical Constraints & Patterns
 
-## Common Tasks
+### File Structure Expectations
+```
+2024/                           # Year folder
+├── Section A_ Registration/    # Registration data
+├── Section B_ UOCAVA/         # Military/overseas  
+├── Section C_ Mail/           # Mail voting
+├── Section F1_ Participation* # Participation (name varies)
+└── (other sections)           # Additional sections vary
+```
 
-### When adding a new year of data:
-1. Download raw data files from Google Drive to local directory
-2. Compare structure with previous years
-3. Update field mappings configuration if needed
-4. Run ETL pipeline to load into BigQuery
-5. Create/update reporting views
-6. Validate data against previous years
+### Critical Data Rules
+1. **Field mappings are year-specific** - column names change between years
+2. **Not all sections exist every year** - check what's available
+3. **FIPS codes are the primary key** - 5-digit county identifiers
+4. **Missing fields must map to NULL** - never guess field names
+5. **Preserve original data** - raw tables are never modified
 
-### When modifying transformations:
-1. Always preserve raw data tables
-2. Version transformation logic in views
-3. Document any business logic changes
-4. Test with sample data before full runs
-5. Update data quality checks
+### BigQuery Structure
+- **Year datasets**: `eavs_2016`, `eavs_2018`, `eavs_2020`, `eavs_2022`, `eavs_2024`
+- **Analytics dataset**: `eavs_analytics` (contains union views)
+- **Union views**: `eavs_county_*_union` (all years combined)
+- **Staging tables**: `stg_eavs_county_*_union` (materialized for performance)
+- **Mart tables**: `mart_eavs_analytics_*_rollup` (dashboard feeds)
 
-## File Structure
+## Annual Workflow
+
+### Step 1: Data Acquisition
+- Download from Google Drive: https://drive.google.com/drive/folders/1yE4TRNrAj-zL2bLdQAbzr_tvQ3sFTOCs
+- Files typically in `/Users/frydaguedes/Downloads/2024/` structure
+- Verify expected sections are present
+
+### Step 2: Field Mapping Analysis
+**CRITICAL**: Field names change between years. Must analyze actual CSV headers.
+- Compare with previous years in `config/field_mappings.yaml`
+- Document any new or changed field names
+- Map missing fields to `null` (never guess)
+
+### Step 3: Load Data
+```bash
+python scripts/load_eavs_year.py 2024 /Users/frydaguedes/Downloads/2024
+```
+This automatically:
+- Uploads CSVs to GCS bucket
+- Creates BigQuery external tables
+- Generates union view update SQL
+- Validates row counts
+
+### Step 4: Update Union Views (Manual)
+**The script generates SQL but cannot update views directly**
+- Check `sql/view_updates/2024_*_view_update.sql` files
+- In BigQuery Console, edit each union view
+- Add the new CTE and UNION ALL statement
+- Save view
+
+### Step 5: Refresh Materialized Tables
+```bash
+python scripts/load_eavs_year.py 2024 /any/path --refresh-tables
+```
+
+### Step 6: Dashboard Verification
+- Check Looker Studio dashboards
+- Verify 2024 appears in year filters
+- Test key visualizations
+
+## Repository Structure
 
 ```
 eavs-data/
-├── data/               # Local data files (NOT in git)
-│   ├── 2022/          # Previous year example
-│   ├── 2024/          # Current year to process
-│   └── processed/     # Transformed data
-├── etl/               # ETL pipeline scripts
-│   ├── extract.py
-│   ├── transform.py
-│   └── load.py
-├── sql/               # BigQuery SQL scripts
-│   ├── tables/        # Table creation scripts
-│   └── views/         # View definitions
-├── config/            # Configuration files
-│   └── field_mappings.yaml
-├── docs/              # Documentation
-├── logs/              # Processing logs (NOT in git)
-├── CLAUDE.md          # This file
-├── TODO.md            # Task tracking
-└── README.md          # Project documentation
+├── scripts/                    # Main pipeline scripts
+│   ├── load_eavs_year.py      # Primary ETL script
+│   └── validate_mappings.py    # Field validation
+├── config/                     # Configuration
+│   ├── field_mappings.yaml     # Year-specific field mappings
+│   └── corrected_*_mappings.yaml # Corrected mappings
+├── sql/                        # SQL files  
+│   └── view_updates/           # Generated union view SQL (created by script)
+├── docs/                       # Documentation
+│   ├── DATA_STANDARDS.md       # Quality standards reference
+│   └── ANNUAL_CHECKLIST.md     # Detailed step-by-step guide
+├── logs/                       # Processing logs (gitignored)
+├── requirements.txt            # Python dependencies
+├── CLAUDE.md                   # This context file
+└── README.md                   # Human-readable overview
 ```
 
-## Git and Security Best Practices
+## Key Configuration: field_mappings.yaml
 
-### What IS committed:
-- Source code and pipeline scripts
-- Configuration templates
-- Documentation
-- SQL scripts and view definitions
-- Requirements files
+This file contains year-specific field mappings since CSV column names change:
 
-### What is NOT committed:
-- Raw data files (CSV, Excel, etc.)
-- Processed data files
-- BigQuery credentials
-- Environment variables (.env)
-- Log files
-- Virtual environments
+```yaml
+registration_mappings:
+  2024:
+    state: state                    # Maps source field to standard name
+    county: county
+    state_abbr: state_name_abbreviation
+    total_reg: a1a_total_reg
+    # ... more mappings
+  2022:
+    state: state
+    county: county  
+    state_abbr: state_abbr          # Note: different from 2024
+    total_reg: total_active_reg     # Note: different field name
+```
 
-### Important Reminders:
-- Never commit sensitive data or credentials
-- Always use virtual environments for Python development
-- Test transformations on sample data first
-- Document any changes to business logic
-- Maintain data lineage documentation
+## Common Issues & Solutions
 
-## Data Sources
+### Authentication Problems
+```bash
+gcloud auth list  # Check current account
+gcloud auth login fryda.guedes@contractor.votingrightslab.org
+```
 
-- **Google Drive**: https://drive.google.com/drive/folders/1yE4TRNrAj-zL2bLdQAbzr_tvQ3sFTOCs
-- **BigQuery Project**: eavs-392800
-- **Google Account**: fryda.guedes@contractor.votingrightslab.org
+### Field Mapping Errors
+- **Error**: "Column X not found" → Field name changed, update mapping
+- **Error**: "NULL values" → Expected if field doesn't exist in that year
+- **Fix**: Always validate actual CSV headers first
+
+### Union View Updates Not Working
+- Check generated SQL syntax in `sql/view_updates/`
+- Verify table names match exactly
+- Ensure CTE name is unique
+- Confirm UNION ALL is added properly
+
+### Row Count Mismatches
+- Compare with source CSV row counts
+- Check for data filtering issues
+- Verify all expected sections were processed
+
+## Project Context
+
+- **Google Drive Source**: https://drive.google.com/drive/folders/1yE4TRNrAj-zL2bLdQAbzr_tvQ3sFTOCs
+- **BigQuery Project**: eavs-392800  
+- **GCS Bucket**: eavs-data-files
+- **Primary Account**: fryda.guedes@contractor.votingrightslab.org
+
+## Git Practices
+
+**Committed**: Scripts, config, SQL templates, documentation
+**NOT Committed**: Raw CSVs, processed data, credentials, logs
+
+**Security**: Never commit data files or credentials. Use .gitignore for data/ and logs/ folders.
 
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.
