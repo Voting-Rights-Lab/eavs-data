@@ -1,0 +1,444 @@
+# EAVS Field Mappings Configuration
+# This file defines how raw EAVS fields map to standardized analytics columns
+
+# Global configuration
+global:
+  project_id: "eavs-392800"
+  analytics_dataset: "eavs_analytics"
+  # Note: Current setup uses Google Sheets as external sources, not GCS
+  # If you want to use GCS in future, create bucket with:
+  # gsutil mb -p eavs-392800 gs://eavs-data-files/
+  use_google_sheets: true  # Set to false to use GCS instead
+  
+# Section definitions - which sections exist for each year
+sections:
+  2016:
+    - a_reg
+    - b_uocava
+    - c_mail
+    - d_polls
+    - e_provisional
+    - f1_participation
+    - f2_tech
+  2018:
+    - a_reg
+    - b_uocava
+    - c_mail
+    - d_polls
+    - e_provisional
+    - f1_participation
+    - f2_tech
+  2020:
+    - a_reg
+    - b_uocava
+    - c_mail
+    - d_polls
+    - e_provisional
+    - f1_participation
+    - f2_tech
+  2022:
+    - a_reg
+    - b_uocava
+    - c_mail
+    - d_polls
+    - e_provisional
+    - f1_participation
+    - f2_tech
+  2024:
+    - a_reg
+    - b_uocava
+    - c_mail
+    - f1_participation
+
+# Field mappings for Section A: Registration
+registration_mappings:
+  # Standard output fields that all years map to
+  standard_fields:
+    - election_year
+    - state
+    - county
+    - state_abbr
+    - county_name
+    - total_reg
+    - total_active_reg
+    - total_inactive_reg
+    - total_sdr
+    - election_day_sdr
+    - prior_election_day_sdr
+    - total_reg_received
+    - total_valid_reg
+    - pre_reg
+    - invalid_reg
+    - mail_reg
+    - in_person_reg
+    - online_reg
+    - dmv_reg
+    - nvra_reg
+    - disability_reg
+    - armed_forces_reg
+    - non_nvra_reg
+    - new_mail_reg
+    - new_in_person_reg
+    - new_online_reg
+    - new_dmv_reg
+    - new_nvra_reg
+    - new_disability_reg
+    - new_armed_forces_reg
+    - new_non_nvra_reg
+    - confirmation_notices_sent
+    - confirmation_notices_received
+    - total_voters_removed
+    - voters_removed_moved
+    - voters_removed_death
+    - voters_removed_felony
+    - voters_removed_fail_response
+    - voters_removed_mentally_incompetent
+    - voters_removed_voter_request
+
+  # Year-specific field mappings
+  2016:
+    state: state
+    county: county
+    state_abbr: State_Abbr
+    county_name: county_name
+    total_reg: A1a_REG_total
+    total_active_reg: A3a_REG_Active
+    total_inactive_reg: A3b_REG_Inactive
+    total_sdr: A4a_REG_SDR_total
+    election_day_sdr: null
+    prior_election_day_sdr: null
+    total_reg_received: A5a_REG_forms_total
+    total_valid_reg: A5b_REG_forms_new_valid
+    pre_reg: A5c_REG_forms_new_prereg
+    invalid_reg: A5e_REG_forms_rejected
+    mail_reg: A6a_REG_forms_all_source_mail
+    in_person_reg: A6b_REG_forms_all_source_inperson
+    online_reg: A6c_REG_forms_all_source_online
+    dmv_reg: A6d_REG_forms_all_source_DMV
+    nvra_reg: A6e_REG_forms_all_source__NVRA_agency
+    disability_reg: A6f_REG_forms_all_source_disab_agency
+    armed_forces_reg: A6g_REG_forms_all_source_armed_forces
+    non_nvra_reg: A6h_REG_forms_all_source_nonNVRA_agency
+    new_mail_reg: A7a_REG_forms_new_source_mail
+    new_in_person_reg: A7b_REG_forms_new_source_inperson
+    new_online_reg: A7c_REG_forms_new_source_online
+    new_dmv_reg: A7d_REG_forms_new_source_DMV
+    new_nvra_reg: A7e_REG_forms_new_source__NVRA_agency
+    new_disability_reg: A7f_REG_forms_new_source_disab_agency
+    new_armed_forces_reg: A7g_REG_forms_new_source_armed_forces
+    new_non_nvra_reg: A7h_REG_forms_new_source_nonNVRA_agency
+    confirmation_notices_sent: A10a_REG_notification_sent
+    confirmation_notices_received: A10b_REG_notification_ret_confirm
+    total_voters_removed: A11a_REG_removed_total
+    voters_removed_moved: A11b_REG_removed_moved
+    voters_removed_death: A11c_REG_removed_death
+    voters_removed_felony: A11d_REG_removed_felony
+    voters_removed_fail_response: A11e_REG_removed_fail_resp
+    voters_removed_mentally_incompetent: A11f_REG_removed_ment_inc
+    voters_removed_voter_request: A11g_REG_removed_voter_request
+
+  2018:
+    state: state
+    county: county
+    state_abbr: State_Abbr
+    county_name: county_name
+    total_reg: a1a_total_reg
+    total_valid_reg: a3b_new_valid
+    total_active_reg: a1b_total_active
+    total_inactive_reg: a1c_total_inactive
+    total_sdr: a2a_total_new_sdr
+    election_day_sdr: null
+    prior_election_day_sdr: null
+    total_reg_received: a3a_total_registered_forms
+    pre_reg: a3c_new_pre_reg
+    invalid_reg: a3e_invalid
+    mail_reg: a4a_mail_total
+    in_person_reg: a4b_in_person_total
+    online_reg: a4c_online_total
+    dmv_reg: a4d_dmv_total
+    nvra_reg: a4e_nvra_mandated_total
+    disability_reg: a4f_disabilities_agency_total
+    armed_forces_reg: a4g_armed_forces_total
+    non_nvra_reg: a4h_non_nvra_mandated_total
+    new_mail_reg: a5a_mail_new_reg
+    new_in_person_reg: a5b_in_person_new_reg
+    new_online_reg: a5c_online_new_reg
+    new_dmv_reg: a5d_dmv_new_reg
+    new_nvra_reg: a5e_nvra_mandated_new_reg
+    new_disability_reg: a5f_disabilities_agency_new_reg
+    new_armed_forces_reg: a5g_armed_forces_new_reg
+    new_non_nvra_reg: a5h_non_nvra_mandated_new_reg
+    confirmation_notices_sent: a8a_notifications_total
+    confirmation_notices_received: a8b_notifications_received_confirming
+    total_voters_removed: a9a_removed_total
+    voters_removed_moved: a9b_removed_moved
+    voters_removed_death: a9c_removed_death
+    voters_removed_felony: a9d_removed_felony
+    voters_removed_fail_response: a9e_removed_fail_response
+    voters_removed_mentally_incompetent: a9f_removed_mentally_incompetent
+    voters_removed_voter_request: a9g_removed_voter_request
+
+  2020:
+    state: state
+    county: county
+    state_abbr: State_Abbr
+    county_name: county_name
+    total_reg: A1a_REG_total
+    total_active_reg: A1b_REG_active
+    total_inactive_reg: A1c_REG_inactive
+    total_sdr: A2a_REG_SDR_total
+    election_day_sdr: A2b_REG_SDR_ED
+    prior_election_day_sdr: A2c_REG_SDR_early
+    total_reg_received: A3a_REG_forms_total
+    total_valid_reg: A3b_REG_forms_new_valid
+    pre_reg: A3c_REG_forms_new_prereg
+    invalid_reg: A3e_REG_forms_rejected
+    mail_reg: A4a_REG_forms_all_source_mail
+    in_person_reg: A4b_REG_forms_all_source_inperson
+    online_reg: A4c_REG_forms_all_source_online
+    dmv_reg: A4d_REG_forms_all_source_DMV
+    nvra_reg: A4e_REG_forms_all_source__NVRA_agency
+    disability_reg: A4f_REG_forms_all_source_disab_agency
+    armed_forces_reg: A4g_REG_forms_all_source_armed_forces
+    non_nvra_reg: A4h_REG_forms_all_source_nonNVRA_agency
+    new_mail_reg: A5a_REG_forms_new_source_mail
+    new_in_person_reg: A5b_REG_forms_new_source_inperson
+    new_online_reg: A5c_REG_forms_new_source_online
+    new_dmv_reg: A5d_REG_forms_new_source_DMV
+    new_nvra_reg: A5e_REG_forms_new_source__NVRA_agency
+    new_disability_reg: A5f_REG_forms_new_source_disab_agency
+    new_armed_forces_reg: A5g_REG_forms_new_source_armed_forces
+    new_non_nvra_reg: A5h_REG_forms_new_source_nonNVRA_agency
+    confirmation_notices_sent: A8a_REG_notification_sent
+    confirmation_notices_received: A8b_REG_notification_ret_confirm
+    total_voters_removed: A9a_REG_removed_total
+    voters_removed_moved: A9b_REG_removed_moved
+    voters_removed_death: A9c_REG_removed_death
+    voters_removed_felony: A9d_REG_removed_felony
+    voters_removed_fail_response: A9e_REG_removed_fail_resp
+    voters_removed_mentally_incompetent: A9f_REG_removed_ment_inc
+    voters_removed_voter_request: A9g_REG_removed_voter_request
+
+  2022:
+    state: state
+    county: county
+    state_abbr: state_name_abbreviation
+    county_name: county_name
+    total_reg: a1a_total_reg
+    total_active_reg: a1b_total_active
+    total_inactive_reg: a1c_total_inactive
+    total_sdr: a2a_total_sdr
+    election_day_sdr: a2b_election_day_sdr
+    prior_election_day_sdr: a2c_sdr_prior_to_election_day
+    total_reg_received: a3a_total_registered_forms
+    total_valid_reg: a3b_new_valid
+    pre_reg: a3c_new_pre_reg
+    invalid_reg: a3e_invalid
+    mail_reg: a4a_mail_total
+    in_person_reg: a4b_in_person_total
+    online_reg: a4c_online_total
+    dmv_reg: a4d_dmv_total
+    nvra_reg: a4e_nvra_mandated_total
+    disability_reg: a4f_disabilities_agency_total
+    armed_forces_reg: a4g_armed_forces_total
+    non_nvra_reg: a4h_non_nvra_mandated_total
+    new_mail_reg: a5a_mail_new_reg
+    new_in_person_reg: a5b_in_person_new_reg
+    new_online_reg: a5c_online_new_reg
+    new_dmv_reg: a5d_dmv_new_reg
+    new_nvra_reg: a5e_nvra_mandated_new_reg
+    new_disability_reg: a5f_disabilities_agency_new_reg
+    new_armed_forces_reg: a5g_armed_forces_new_reg
+    new_non_nvra_reg: a5h_non_nvra_mandated_new_reg
+    confirmation_notices_sent: a8a_notifications_total
+    confirmation_notices_received: a8b_notifications_received_confirming
+    total_voters_removed: a9a_removed_total
+    voters_removed_moved: a9b_removed_moved
+    voters_removed_death: a9c_removed_death
+    voters_removed_felony: a9d_removed_felony
+    voters_removed_fail_response: a9e_removed_fail_response
+    voters_removed_mentally_incompetent: a9f_removed_mentally_incompetent
+    voters_removed_voter_request: a9g_removed_voter_request
+
+  2024:
+    state: state
+    county: county
+    state_abbr: state_name_abbreviation
+    county_name: county_name
+    total_reg: a1a_total_reg
+    total_active_reg: a1b_total_active
+    total_inactive_reg: a1c_total_inactive
+    total_sdr: a2a_total_sdr
+    election_day_sdr: a2b_election_day_sdr
+    prior_election_day_sdr: a2c_sdr_prior_to_election_day
+    total_reg_received: a3a_total_reg_transactions
+    total_valid_reg: a3b_new_valid
+    pre_reg: a3c_new_pre_reg
+    invalid_reg: a3e_invalid
+    mail_reg: a4a_mail_total
+    in_person_reg: a4b_in_person_total
+    online_reg: a4c_online_total
+    dmv_reg: a4d_dmv_total
+    nvra_reg: a4e_nvra_mandated_total
+    disability_reg: a4f_disabilities_agency_total
+    armed_forces_reg: a4g_armed_forces_total
+    non_nvra_reg: a4h_non_nvra_mandated_total
+    new_mail_reg: a5a_mail_new_reg
+    new_in_person_reg: a5b_in_person_new_reg
+    new_online_reg: a5c_online_new_reg
+    new_dmv_reg: a5d_dmv_new_reg
+    new_nvra_reg: a5e_nvra_mandated_new_reg
+    new_disability_reg: a5f_disabilities_agency_new_reg
+    new_armed_forces_reg: a5g_armed_forces_new_reg
+    new_non_nvra_reg: a5h_non_nvra_mandated_new_reg
+    confirmation_notices_sent: a8a_notifications_total
+    confirmation_notices_received: a8b_notifications_received_confirming
+    total_voters_removed: a9a_removed_total
+    voters_removed_moved: a9b_removed_moved
+    voters_removed_death: a9c_removed_death
+    voters_removed_felony: a9d_removed_felony
+    voters_removed_fail_response: a9e_removed_fail_response
+    voters_removed_mentally_incompetent: a9f_removed_mentally_incompetent
+    voters_removed_voter_request: a9g_removed_voter_request
+
+# UOCAVA (Section B) field mappings
+uocava_mappings:
+  standard_fields:
+    - election_year
+    - state
+    - county
+    - uocava_total_reg
+    - military_total
+    - civilian_total
+    - uocava_transmitted_total
+    - uocava_mail_transmitted
+    - uocava_email_transmitted
+    - uocava_returned_total
+    - uocava_mail_returned
+    - uocava_email_returned
+    - uocava_total_counted
+    - uocava_mail_counted
+    - uocava_email_counted
+    - uocava_total_rejected
+    - uocava_deadline_rejected
+    - uocava_voter_signature_total
+    - uocava_postmark_rejected_total
+    - uocava_other_rejected_total
+    - military_transmitted
+    - military_mail_transmitted
+    - military_email_transmitted
+    - military_returned_total
+    - military_mail_returned
+    - military_email_returned
+
+  2024:
+    state: state
+    county: county
+    uocava_total_reg: b1a_uocava_total_reg
+    military_total: b1b_uocava_uniformed_service_total
+    civilian_total: b1c_uocava_non_military_total
+    uocava_transmitted_total: b5a_uocava_transmitted_total
+    uocava_mail_transmitted: b6a_post_mail_transmitted_total
+    uocava_email_transmitted: b7a_email_transmitted_total
+    uocava_returned_total: b8a_returned_total
+    uocava_mail_returned: b9a_mail_returned_total
+    uocava_email_returned: b10a_email_ballots_returned_total
+    uocava_total_counted: b11a_counted_total
+    uocava_mail_counted: b12a_mail_counted_total
+    uocava_email_counted: b13a_email_counted_total
+    uocava_total_rejected: b14a_rejected_total
+    uocava_deadline_rejected: b15a_deadline_rejected_total
+    uocava_voter_signature_total: b16a_voter_signature_rejected_total
+    uocava_postmark_rejected_total: b17a_postmark_rejected_total
+    uocava_other_rejected_total: b18a_other_rejected_total
+    military_transmitted: b5b_uniformed_service_transmitted_total
+    military_mail_transmitted: b6b_post_mail_transmitted_uniformed_service
+    military_email_transmitted: b7b_email_transmitted_uniformed_service
+    military_returned_total: b8b_uniformed_service_returned_total
+    military_mail_returned: b9b_mail_uniformed_service_returned
+    military_email_returned: b10b_email_uniformed_service_returned
+
+# Mail Voting (Section C) field mappings  
+mail_mappings:
+  standard_fields:
+    - election_year
+    - state
+    - county
+    - state_abbr
+    - county_name
+    - total_mail_transmit
+    - total_mail_return
+    - total_mail_counted
+    - total_mail_reject
+    - deadline_mail_reject
+    - voter_sign_mail_reject
+    - witness_sign_mail_reject
+    - nonmatch_sign_mail_reject
+    - unofficial_env_mail_reject
+    - EO_sign_missing_mail_reject
+    - missing_ballot_mail_reject
+    - unsealed_env_mail_reject
+    - no_address_mail_reject
+    - multi_ballot_mail_reject
+    - deceased_mail_reject
+    - already_voted_mail_reject
+    - insufficient_ID_mail_reject
+    - no_ballot_app_mail_reject
+    - other_reason_mail_reject
+
+  2024:
+    state: state
+    county: county
+    state_abbr: state_name_abbreviation
+    county_name: county_name
+    total_mail_transmit: c1a_mail_transmitted_total
+    total_mail_return: c1b_mail_returned_by_voters_total
+    total_mail_counted: c6a_total_counted
+    total_mail_reject: c7a_total_rejected
+    deadline_mail_reject: c8a_deadline_rejected_total
+    voter_sign_mail_reject: c9a_voter_signature_missing_rejected_total
+    witness_sign_mail_reject: c10a_witness_signature_missing_rejected_total
+    nonmatch_sign_mail_reject: c11a_signature_mismatch_rejected_total
+    unofficial_env_mail_reject: c12a_unofficial_envelope_rejected_total
+    EO_sign_missing_mail_reject: null  # May not exist in 2024
+    missing_ballot_mail_reject: c13a_ballot_missing_rejected_total
+    unsealed_env_mail_reject: c14a_unsealed_envelope_rejected_total
+    no_address_mail_reject: c15a_no_voter_address_rejected_total
+    multi_ballot_mail_reject: c16a_multiple_ballots_rejected_total
+    deceased_mail_reject: c17a_voter_deceased_rejected_total
+    already_voted_mail_reject: c18a_already_voted_rejected_total
+    insufficient_ID_mail_reject: c19a_insufficient_id_rejected_total
+    no_ballot_app_mail_reject: c20a_no_ballot_application_rejected_total
+    other_reason_mail_reject: c21a_other_rejected_total
+
+# Participation (Section F1) field mappings
+participation_mappings:
+  standard_fields:
+    - election_year
+    - state
+    - county
+    - state_abbr
+    - county_name
+    - total_part
+    - election_day_part
+    - absentee_uovaca_part
+    - mail_part
+    - in_person_early_part
+    - vbm_part
+    - other_part
+
+  2024:
+    state: state
+    county: county
+    state_abbr: state_name_abbreviation
+    county_name: county_name
+    total_part: f1a_total_voters
+    election_day_part: f1b_physical_polling_place
+    absentee_uovaca_part: f1c_absentee_uocava
+    mail_part: f1d_mail_votes
+    in_person_early_part: f1f_in_person_early_voting
+    vbm_part: f1g_mail_votes_in_vote_by_mail_jurisdiction
+    other_part: f1h_total_participation_other
+
+# Note: Add mappings for other years as needed following the same pattern
+# The pipeline will generate warnings for missing mappings but continue processing
