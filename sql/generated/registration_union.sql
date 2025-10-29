@@ -251,13 +251,13 @@ SELECT
   a5g_disabilities_agency_new_reg as new_disability_reg,
   a5h_armed_forces_new_reg as new_armed_forces_reg,
   a5i_non_nvra_mandated_new_reg as new_non_nvra_reg,
-  NULL as confirmation_notices_sent,
-  NULL as confirmation_notices_received,
-  NULL as total_voters_removed,
-  NULL as voters_removed_moved,
-  NULL as voters_removed_death,
-  NULL as voters_removed_felony,
-  NULL as voters_removed_fail_response,
-  NULL as voters_removed_mentally_incompetent,
-  NULL as voters_removed_voter_request
+  a10a_notifications_total as confirmation_notices_sent,
+  a10b_notifications_received_confirming_no_add_change as confirmation_notices_received,
+  a12a_removed_total as total_voters_removed,
+  a12b_removed_moved as voters_removed_moved,
+  a12c_removed_death as voters_removed_death,
+  a12d_removed_felony as voters_removed_felony,
+  a12e_removed_fail_response as voters_removed_fail_response,
+  a12f_removed_incompetent_to_vote as voters_removed_mentally_incompetent,
+  a12g_removed_voter_request as voters_removed_voter_request
 FROM `eavs-392800.eavs_2024.eavs_county_24_A_REG`

@@ -291,15 +291,15 @@ registration_mappings:
     new_disability_reg: a5g_disabilities_agency_new_reg
     new_armed_forces_reg: a5h_armed_forces_new_reg
     new_non_nvra_reg: a5i_non_nvra_mandated_new_reg
-    confirmation_notices_sent: null
-    confirmation_notices_received: null
-    total_voters_removed: null
-    voters_removed_moved: null
-    voters_removed_death: null
-    voters_removed_felony: null
-    voters_removed_fail_response: null
-    voters_removed_mentally_incompetent: null
-    voters_removed_voter_request: null
+    confirmation_notices_sent: a10a_notifications_total
+    confirmation_notices_received: a10b_notifications_received_confirming_no_add_change
+    total_voters_removed: a12a_removed_total
+    voters_removed_moved: a12b_removed_moved
+    voters_removed_death: a12c_removed_death
+    voters_removed_felony: a12d_removed_felony
+    voters_removed_fail_response: a12e_removed_fail_response
+    voters_removed_mentally_incompetent: a12f_removed_incompetent_to_vote
+    voters_removed_voter_request: a12g_removed_voter_request
 
 # UOCAVA (Section B) field mappings
 uocava_mappings:
@@ -330,6 +330,14 @@ uocava_mappings:
     - military_returned_total
     - military_mail_returned
     - military_email_returned
+    - military_counted_total
+    - military_mail_counted
+    - military_email_counted
+    - military_rejected_total
+    - military_deadline_rejected
+    - military_signature_rejected
+    - military_postmark_rejected
+    - military_other_rejected
 
   2024:
     state: state
@@ -349,15 +357,22 @@ uocava_mappings:
     military_returned_total: b11b_uniformed_service_returned_total
     military_mail_returned: b12b_post_mail_returned_uniformed_service
     military_email_returned: b13b_email_returned_uniformed_service
-    # These don't exist in 2024 - content not available
-    uocava_total_counted: null
-    uocava_mail_counted: null
-    uocava_email_counted: null
-    uocava_total_rejected: null
-    uocava_deadline_rejected: null
-    uocava_voter_signature_total: null
-    uocava_postmark_rejected_total: null
-    uocava_other_rejected_total: null
+    uocava_total_counted: b18a_uocava_counted_total
+    uocava_mail_counted: b19a_postal_mail_counted_total
+    uocava_email_counted: b20a_email_counted_total
+    uocava_total_rejected: b24a_uocava_rejected_total
+    uocava_deadline_rejected: b25a_deadline_rejected_total
+    uocava_voter_signature_total: b26a_signature_rejected_total
+    uocava_postmark_rejected_total: b27a_postmark_rejected_total
+    uocava_other_rejected_total: b28a_other_rejected_total
+    military_counted_total: b18b_uniformed_service_counted_total
+    military_mail_counted: b19b_postal_mail_counted_uniformed_service
+    military_email_counted: b20b_email_counted_uniformed_service
+    military_rejected_total: b24b_uniformed_service_rejected_total
+    military_deadline_rejected: b25b_deadline_rejected_uniformed_service
+    military_signature_rejected: b26b_signature_rejected_uniformed_service
+    military_postmark_rejected: b27b_postmark_rejected_uniformed_service
+    military_other_rejected: b28b_other_rejected_uniformed_service
 
 # Mail Voting (Section C) field mappings  
 mail_mappings:
@@ -394,25 +409,23 @@ mail_mappings:
     county_name: county_name
     total_mail_transmit: c1a_mail_transmitted_total
     total_mail_return: c1b_mail_returned_by_voters_total
-    # 2024 has different mail ballot tracking structure - no detailed rejection reasons
-    # All rejection reason fields map to null - content not available in 2024
-    total_mail_counted: null
-    total_mail_reject: null
-    deadline_mail_reject: null
-    voter_sign_mail_reject: null
-    witness_sign_mail_reject: null
-    nonmatch_sign_mail_reject: null
-    unofficial_env_mail_reject: null
+    total_mail_counted: c8a_total_mail_ballots_counted
+    total_mail_reject: c9a_total_mail_ballots_rejected
+    deadline_mail_reject: c9b_mail_ballots_rejected_because_late
+    voter_sign_mail_reject: c9c_mail_ballots_rejected_because_missing_voter_signature
+    witness_sign_mail_reject: c9d_mail_ballots_rejected_because_missing_witness_signature
+    nonmatch_sign_mail_reject: c9e_mail_ballots_rejected_because_non_matching_voter_signature
+    unofficial_env_mail_reject: c9f_mail_ballots_rejected_because_unofficial_envelope
     EO_sign_missing_mail_reject: null
-    missing_ballot_mail_reject: null
-    unsealed_env_mail_reject: null
-    no_address_mail_reject: null
-    multi_ballot_mail_reject: null
-    deceased_mail_reject: null
-    already_voted_mail_reject: null
-    insufficient_ID_mail_reject: null
-    no_ballot_app_mail_reject: null
-    other_reason_mail_reject: null
+    missing_ballot_mail_reject: c9g_mail_ballots_rejected_because_ballot_missing_from_envelope
+    unsealed_env_mail_reject: c9j_mail_ballots_rejected_because_envelope_not_sealed
+    no_address_mail_reject: c9l_mail_ballots_rejected_because_no_resident_address_on_envelope
+    multi_ballot_mail_reject: c9i_mail_ballots_rejected_because_multiple_ballots_in_one_envelope
+    deceased_mail_reject: c9m_mail_ballots_rejected_because_voter_deceased
+    already_voted_mail_reject: c9n_mail_ballots_rejected_because_voter_already_voted
+    insufficient_ID_mail_reject: c9o_mail_ballots_rejected_because_missing_documentation
+    no_ballot_app_mail_reject: c9q_mail_ballots_rejected_because_no_ballot_application
+    other_reason_mail_reject: (c9r_mail_ballots_rejected_other_1 + c9s_mail_ballots_rejected_other_2 + c9t_mail_ballots_rejected_other_3)
 
 # Participation (Section F1) field mappings
 participation_mappings:
