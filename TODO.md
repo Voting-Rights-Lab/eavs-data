@@ -1,6 +1,6 @@
-# EAVS Data Pipeline - 2024 Integration Complete
+# EAVS Data Pipeline - 2024 Integration Status
 
-## Current Status: ✅ Production Ready
+## Current Status: ⏸️ BLOCKED - Waiting for Billing Restoration
 
 All 2024 EAVS data has been successfully loaded and integrated into BigQuery. The pipeline is ready for future years.
 
@@ -57,6 +57,24 @@ The rollup views and mart tables have been updated to use these:
 - **Union generator**: `scripts/generate_dynamic_unions.py`
 - **Field config**: `config/field_mappings.yaml`
 - **Documentation**: `CLAUDE.md`, `README.md`, `docs/ANNUAL_CHECKLIST.md`
+
+## 🚨 Urgent: Billing Blocker
+
+**Project billing has lapsed** - payment card not working on `eavs-392800`.
+
+**What's blocked:**
+- Adding 2024 policy data
+- Migrating Google Sheets to safe native tables
+- Any data loading operations
+
+**What's ready to execute when billing works:**
+- Policy 2024 CSV backed up and ready: `data/backups/google_sheets/policy_2024_backup.csv`
+- Script ready to run: `./scripts/add_policy_2024_when_billing_works.sh`
+- Migration script ready: `python scripts/migrate_sheets_to_bigquery.py`
+
+**See**: [BLOCKED_WAITING_FOR_BILLING.md](BLOCKED_WAITING_FOR_BILLING.md) for details.
+
+**Action needed**: Someone at organization must restore billing at https://console.cloud.google.com/billing
 
 ## Project Info
 
