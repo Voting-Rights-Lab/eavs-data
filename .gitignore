@@ -28,6 +28,11 @@ processed_data/
 !docs/*.csv
 !examples/*.csv
 
+# CRITICAL EXCEPTION: Keep Google Sheets backups for disaster recovery
+!data/backups/
+!data/backups/google_sheets/
+!data/backups/google_sheets/*.csv
+
 # Logs
 *.log
 logs/
