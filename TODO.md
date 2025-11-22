@@ -1,12 +1,14 @@
 # EAVS Data Pipeline - 2024 Integration Status
 
-## Current Status: ⏸️ BLOCKED - Waiting for Billing Restoration
+## Current Status: ✅ Production Ready
 
-All 2024 EAVS data has been successfully loaded and integrated into BigQuery. The pipeline is ready for future years.
+All 2024 EAVS data and 2024 policy data have been successfully loaded and integrated into BigQuery. The pipeline is ready for future years.
 
 ### Latest Year Loaded: 2024
-- **Counties**: 3,126-3,127 per section
+- **Counties**: 3,126-3,127 EAVS data per section
+- **States**: 56 states/territories with policy data
 - **Sections**: Registration (A), UOCAVA (B), Mail (C), Participation (F1)
+- **Policy Data**: All voting policy fields (OVR, SDR, EDR, DROP_BOXES, CURE, ID requirements)
 - **All rejection/removal fields**: Fully mapped and working
 
 ## Quick Reference
@@ -57,24 +59,19 @@ The rollup views and mart tables have been updated to use these:
 - **Union generator**: `scripts/generate_dynamic_unions.py`
 - **Field config**: `config/field_mappings.yaml`
 - **Documentation**: `CLAUDE.md`, `README.md`, `docs/ANNUAL_CHECKLIST.md`
+- **Google Sheets inventory**: `GOOGLE_SHEETS_INVENTORY.md` (tracks data fragility risks)
 
-## 🚨 Urgent: Billing Blocker
+## Recent Improvements (Nov 2024)
 
-**Project billing has lapsed** - payment card not working on `eavs-392800`.
+### Policy Data Migration ✅
+- Migrated all policy tables (2020, 2022, 2024) from Google Sheets to native BigQuery tables
+- Eliminates Google Sheets fragility for policy data
+- CSV backups stored in `data/backups/google_sheets/`
+- All mart tables rebuilt with 2024 policy data
 
-**What's blocked:**
-- Adding 2024 policy data
-- Migrating Google Sheets to safe native tables
-- Any data loading operations
-
-**What's ready to execute when billing works:**
-- Policy 2024 CSV backed up and ready: `data/backups/google_sheets/policy_2024_backup.csv`
-- Script ready to run: `./scripts/add_policy_2024_when_billing_works.sh`
-- Migration script ready: `python scripts/migrate_sheets_to_bigquery.py`
-
-**See**: [BLOCKED_WAITING_FOR_BILLING.md](BLOCKED_WAITING_FOR_BILLING.md) for details.
-
-**Action needed**: Someone at organization must restore billing at https://console.cloud.google.com/billing
+### Remaining Work
+- EAVS historical data (2016-2022) still on Google Sheets - see `GOOGLE_SHEETS_INVENTORY.md`
+- Consider migrating to GCS/native tables when time permits (see `MIGRATION_PLAN.md`)
 
 ## Project Info
 

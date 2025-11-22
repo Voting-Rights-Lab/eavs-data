@@ -6,14 +6,23 @@
 
 ## Confirmed Google Sheets Tables
 
-### Policy Data
-1. **vrl_internal_datasets.policy_2020**
-   - URL: https://docs.google.com/spreadsheets/d/17tX1S1SOpCXrDY0_YQX7cw8ILfWUd0TFPmUtIx9Mh4o/edit?usp=sharing
-   - Data: State-level voting policies for 2020
+### Policy Data - ✅ MIGRATED (Nov 2024)
+~~Previously Google Sheets, now native BigQuery tables~~
 
-2. **vrl_internal_datasets.policy_2022**
-   - URL: https://docs.google.com/spreadsheets/d/1f2lteFd5VPC0NbtRXoV3PTboJAHYNzl4FJpcLpGjK0A/edit?usp=sharing
-   - Data: State-level voting policies for 2022
+1. **vrl_internal_datasets.policy_2020** - ✅ NATIVE TABLE
+   - Migrated from: https://docs.google.com/spreadsheets/d/17tX1S1SOpCXrDY0_YQX7cw8ILfWUd0TFPmUtIx9Mh4o/edit?usp=sharing
+   - Backup CSV: `data/backups/google_sheets/policy_2020.csv` (in repo)
+   - Status: Native BigQuery table (safe)
+
+2. **vrl_internal_datasets.policy_2022** - ✅ NATIVE TABLE
+   - Migrated from: https://docs.google.com/spreadsheets/d/1f2lteFd5VPC0NbtRXoV3PTboJAHYNzl4FJpcLpGjK0A/edit?usp=sharing
+   - Backup CSV: `data/backups/google_sheets/policy_2022.csv` (in repo)
+   - Status: Native BigQuery table (safe)
+
+3. **vrl_internal_datasets.policy_2024** - ✅ NATIVE TABLE
+   - Loaded from CSV (never was Google Sheets)
+   - Backup CSV: `data/backups/google_sheets/policy_2024_backup.csv` (in repo)
+   - Status: Native BigQuery table (safe)
 
 ### EAVS Data (2016-2022)
 All sections (A, B, C, D, E, F1, F2) for years 2016, 2018, 2020, 2022 are stored in Google Sheets:
