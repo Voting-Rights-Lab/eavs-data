@@ -280,7 +280,9 @@ class EAVSLoader:
             'stg_eavs_county_reg_union': 'eavs_county_reg_union',
             'stg_eavs_county_mail_union': 'eavs_county_mail_union',
             'stg_eavs_county_part_union': 'eavs_county_part_union',
-            'stg_eavs_county_uocava_union': 'eavs_county_uocava_union'
+            'stg_eavs_county_uocava_union': 'eavs_county_uocava_union',
+            'mart_eavs_analytics_county_rollup': 'eavs_analytics_county_rollup',
+            'mart_eavs_analytics_state_rollup': 'eavs_analytics_state_rollup'
         }
         
         for table_name, view_name in tables_to_refresh.items():
