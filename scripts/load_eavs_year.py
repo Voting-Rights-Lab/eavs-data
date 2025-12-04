@@ -12,11 +12,13 @@ import sys
 import yaml
 import argparse
 import logging
+import re
 from pathlib import Path
 from datetime import datetime
 from google.cloud import bigquery
 from google.cloud import storage
-from google.cloud.exceptions import Conflict
+from google.cloud.exceptions import Conflict, NotFound, Forbidden
+from google.api_core.exceptions import BadRequest
 
 # Setup logging
 logging.basicConfig(
@@ -25,26 +27,42 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# GCS bucket name - using a consistent bucket for all years
-GCS_BUCKET = "eavs-data-files-2024"
-PROJECT_ID = "eavs-392800"
-ANALYTICS_DATASET = "eavs_analytics"
+# Configuration - can be overridden with environment variables
+GCS_BUCKET = os.getenv("EAVS_GCS_BUCKET", "eavs-data-files")
+PROJECT_ID = os.getenv("EAVS_PROJECT_ID", "eavs-392800")
+ANALYTICS_DATASET = os.getenv("EAVS_ANALYTICS_DATASET", "eavs_analytics")
 
 
 class EAVSLoader:
     """Load EAVS data for a specific year"""
-    
+
     def __init__(self, year: str):
+        # Validate year format
+        if not re.match(r'^\d{4}$', year):
+            raise ValueError(f"Invalid year format: {year}. Expected 4-digit year (e.g., 2024)")
+
+        year_int = int(year)
+        if not (2010 <= year_int <= 2040):
+            raise ValueError(f"Year {year} out of expected range (2010-2040)")
+
         self.year = year
         self.year_short = year[-2:]  # e.g., "24" from "2024"
         self.bq_client = bigquery.Client(project=PROJECT_ID)
         self.storage_client = storage.Client(project=PROJECT_ID)
-        
+
         # Load field mappings
         config_path = Path(__file__).parent.parent / "config" / "field_mappings.yaml"
-        with open(config_path, 'r') as f:
-            self.config = yaml.safe_load(f)
-        
+        try:
+            with open(config_path, 'r') as f:
+                self.config = yaml.safe_load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Configuration file not found: {config_path}. "
+                f"Ensure you're running the script from the project root."
+            )
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML in configuration file: {e}")
+
         logger.info(f"Initialized loader for year {year}")
     
     def create_gcs_bucket(self):
@@ -55,10 +73,19 @@ class EAVSLoader:
             # Just try to list it to see if it exists and is accessible
             list(bucket.list_blobs(max_results=1))
             logger.info(f"✓ Bucket {GCS_BUCKET} exists and is accessible")
-        except Exception as e:
-            logger.error(f"Cannot access bucket {GCS_BUCKET}: {e}")
+        except NotFound:
+            logger.error(f"Bucket {GCS_BUCKET} does not exist")
             logger.info("Please create the bucket manually with:")
             logger.info(f"  gsutil mb -p {PROJECT_ID} gs://{GCS_BUCKET}/")
+            raise ValueError(f"Bucket {GCS_BUCKET} not found")
+        except Forbidden:
+            logger.error(f"No permission to access bucket {GCS_BUCKET}")
+            logger.info("Check your authentication:")
+            logger.info("  gcloud auth list")
+            logger.info("  gcloud auth login fryda.guedes@contractor.votingrightslab.org")
+            raise PermissionError(f"Access denied to bucket {GCS_BUCKET}")
+        except Exception as e:
+            logger.error(f"Unexpected error accessing bucket {GCS_BUCKET}: {e}")
             raise
     
     def upload_files_to_gcs(self, data_dir: Path) -> dict:
@@ -174,7 +201,15 @@ class EAVSLoader:
                 
                 # Insert the new CTE into the existing SQL
                 updated_sql = self._insert_cte_into_view(existing_sql, new_cte, section)
-                
+
+                # Validate SQL before updating view (dry run)
+                logger.info(f"Validating SQL for {view_name}...")
+                if not self._validate_sql(updated_sql):
+                    logger.error(f"Generated SQL is invalid for {view_name}")
+                    logger.info("View not updated. Check generated SQL in logs.")
+                    logger.debug(f"Invalid SQL:\n{updated_sql}")
+                    continue
+
                 # Update the view
                 view.view_query = updated_sql
                 view = self.bq_client.update_table(view, ["view_query"])
@@ -205,12 +240,16 @@ class EAVSLoader:
             logger.warning(f"No field mappings for {section} in year {self.year}")
             return None
         
+        # Define base fields that should always be included
+        base_fields = {'election_year'}  # Only election_year since it's always generated
+
         # Build SELECT statement
         selections = [f"'{self.year}' AS election_year"]
         for standard_field in mappings.get('standard_fields', []):
-            if standard_field == 'election_year':
+            # Skip base fields to avoid duplicates
+            if standard_field in base_fields:
                 continue
-            
+
             source_field = year_fields.get(standard_field)
             if source_field and source_field != 'null':
                 selections.append(f"{source_field} AS {standard_field}")
@@ -272,8 +311,30 @@ class EAVSLoader:
             existing_sql = existing_sql[:insert_pos] + union_addition + existing_sql[insert_pos:]
         
         return existing_sql
-    
-    
+
+    def _validate_sql(self, sql: str) -> bool:
+        """
+        Validate SQL by running a BigQuery dry run.
+
+        Args:
+            sql: SQL query to validate
+
+        Returns:
+            True if SQL is valid, False otherwise
+        """
+        try:
+            job_config = bigquery.QueryJobConfig(dry_run=True, use_query_cache=False)
+            self.bq_client.query(sql, job_config=job_config)
+            logger.info("✓ SQL validation passed")
+            return True
+        except BadRequest as e:
+            logger.error(f"SQL validation failed: {e}")
+            return False
+        except Exception as e:
+            logger.warning(f"SQL validation encountered unexpected error: {e}")
+            return False
+
+
     def refresh_materialized_tables(self):
         """Refresh materialized tables from views"""
         tables_to_refresh = {

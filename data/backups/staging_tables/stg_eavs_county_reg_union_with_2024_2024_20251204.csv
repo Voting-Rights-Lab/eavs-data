@@ -1,0 +1,6 @@
+BigQuery error in query operation: Error processing job 'data-
+exchange-1:bqjob_r257c7ca9c0e74f2d_0000019aea7c023b_1': Access Denied: Table
+eavs-392800:eavs_analytics.stg_eavs_county_reg_union_with_2024: User does not
+have permission to query table
+eavs-392800:eavs_analytics.stg_eavs_county_reg_union_with_2024, or perhaps it
+does not exist.

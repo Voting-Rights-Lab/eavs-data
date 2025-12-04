@@ -32,6 +32,8 @@ processed_data/
 !data/backups/
 !data/backups/google_sheets/
 !data/backups/google_sheets/*.csv
+!data/backups/staging_tables/
+!data/backups/staging_tables/*.csv
 
 # Logs
 *.log

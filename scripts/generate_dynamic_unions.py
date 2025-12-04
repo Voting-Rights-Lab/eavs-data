@@ -49,25 +49,32 @@ class DynamicUnionGenerator:
         dataset_name = self.get_dataset_name(year)
         table_name = self.get_table_name(year, section_code)
         
+        # Define base fields that are always included
+        base_fields = {'fips', 'election_year', 'state', 'county', 'state_abbr', 'county_name'}
+
         # Start with base fields
         selects = [
             "fips",
             f"'{year}' as election_year",
             "state",
             "county",
-            "state_abbr", 
+            "state_abbr",
             "county_name"
         ]
-        
-        # Add mapped fields
+
+        # Add mapped fields (excluding base fields to avoid duplicates)
         for standard_field in standard_fields:
+            # Skip if this is a base field (already included above)
+            if standard_field in base_fields:
+                continue
+
             source_field = year_mappings.get(standard_field)
-            
+
             if source_field == 'null' or source_field is None:
                 field_select = f"NULL as {standard_field}"
             else:
                 field_select = f"{source_field} as {standard_field}"
-            
+
             selects.append(field_select)
         
         # Generate SELECT block
