@@ -29,6 +29,46 @@ Staging Tables (eavs_analytics.stg_*)
 Dashboard Tables & Looker Studio
 ```
 
+### Denominator Data (CVAP/VEP) Architecture
+
+**Legacy (2016-2022):** Google Sheets → External Tables
+**New (2024+):** Local CSV → GCS → Native BigQuery Tables (safer, more controlled)
+
+```
+Census Bureau / UF Election Lab
+    ↓ (Download CSV)
+Local CSV Files
+    ↓ (bq load or gsutil cp)
+GCS Bucket: gs://eavs-data-files/denominators/
+    ↓ (bq load or CREATE TABLE)
+Native Tables: acs.*, us_elections_vep.*
+    ↓ (Union Views)
+eavs_analytics.acs_population_union
+eavs_analytics.vep_union
+    ↓ (Materialized Tables)
+eavs_analytics.stg_acs_population_union
+eavs_analytics.stg_vep_union
+    ↓ (Join with EAVS data on election_year + FIPS/state)
+Analytics & Dashboards
+```
+
+**Year-Denominator Matching:**
+- 2016 election → ACS 2012-2016 5-year CVAP + VEP 2016
+- 2018 election → ACS 2014-2018 5-year CVAP + VEP 2018
+- 2020 election → ACS 2016-2020 5-year CVAP + VEP 2020
+- 2022 election → ACS 2017-2021 5-year CVAP + VEP 2022
+- **2024 election → ACS 2019-2023 5-year CVAP + VEP 2024**
+
+**Key Points:**
+- **CVAP (County-level)**: Citizen Voting Age Population from Census ACS 5-year estimates (~3,220 counties)
+- **VEP (State-level)**: Voting Eligible Population from UF Election Lab (~51 states/DC)
+- **Join keys**: CVAP joins on `FIPS`, VEP joins on `state_abbr`, both use `election_year`
+
+**2024 Loaded (Dec 2024):** ✅
+- CVAP: 41,886 rows → `acs.acs_2019-2023_county_cvap` (note: no `state` column, extract from `geoname`)
+- VEP: 52 rows → `us_elections_vep.vep_2024` (note: columns are `STATE_ABV`, `VEP` - uppercase)
+- Views updated, staging/mart tables refreshed
+
 ### Data Sections (varies by year)
 - **Section A**: Registration - Voter registration statistics
 - **Section B**: UOCAVA - Military and overseas voting
