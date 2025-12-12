@@ -118,13 +118,21 @@ class EAVSLoader:
                 file_path = data_dir / relative_path
             
             if file_path and file_path.exists():
-                # Upload to GCS with year/section structure
+                # Upload to GCS with year/section structure (idempotent)
                 blob_name = f"{self.year}/{section}.csv"
                 blob = bucket.blob(blob_name)
-                
-                logger.info(f"Uploading {file_path.name} to gs://{GCS_BUCKET}/{blob_name}")
-                blob.upload_from_filename(str(file_path))
-                
+
+                # Check if blob already exists
+                if blob.exists():
+                    logger.info(f"File already exists: gs://{GCS_BUCKET}/{blob_name}")
+                    logger.info(f"Overwriting with {file_path.name}")
+                    blob.upload_from_filename(str(file_path))
+                    logger.info(f"✓ Overwrite complete")
+                else:
+                    logger.info(f"Uploading {file_path.name} to gs://{GCS_BUCKET}/{blob_name}")
+                    blob.upload_from_filename(str(file_path))
+                    logger.info(f"✓ Upload complete")
+
                 gcs_paths[section] = f"gs://{GCS_BUCKET}/{blob_name}"
             else:
                 logger.warning(f"File not found for section {section}: {relative_path}")
